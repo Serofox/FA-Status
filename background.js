@@ -1,71 +1,20 @@
-var dbg = false;
-var REFRESH_PERIOD = 1000 * 30;
-
-Array.prototype.values = function() {
-	ret = []
-	for (i in this) {
-		if (this.hasOwnProperty(i)) {
-			ret.push(this[i]);
-		}
+chrome.extension.onRequest.addListener(function (request, sender, respond) {
+	switch (request.fun) {
+		case 'title_save':
+			console.log("Saved new title: " + request.title);
+		    localStorage['lastTitle'] = request.title;
+		    localStorage['lastNotifMarkup'] = request.notifMarkup;
+		    localStorage['lastFetchTime'] = Date.now();
+		    break;
+		case 'title_get':
+			console.log("Giving out title: " + localStorage['lastTitle']);
+			respond({
+				'title': localStorage['lastTitle'],
+				'notifMarkup': localStorage['notifMarkup'],
+				'time': localStorage['lastFetchTime']
+			});
+			break;
+		default:
+			console.log('Received unknown message function: ' + request.fun);
 	}
-	return ret;
-}
-
-function DEBUG(str) {
-	if (dbg) {
-		console.log(str);
-	}
-}
-
-function setTitle(str) {
-	DEBUG(str);
-	$('head>title').text(str);
-}
-
-function getNotificationsMarkup(dom) {
-	return $(dom).find('.header_bkg li.noblock').first();
-}
-
-function parsePage(dom) {
-	datums = new Array();
-	hasNotifs = false;
-	selectors = ['/msg/submissions', '/msg/others', '/msg/pms', '/msg/troubletickets'];
-	for (i in selectors) {
-		var val = getNotificationsMarkup(dom).find('a[href^="' + selectors[i] + '"]').first().text();
-		if (val != '' && val[0] >= '0' && val[0] <= '9') {
-			datums[selectors[i]] = val;
-			hasNotifs = true;
-		}
-	}
-
-	if (hasNotifs) {
-		setTitle('(' + datums.values().join(', ') + ') ' + $(document).data('originalTitle'));
-	} else {
-		setTitle($(document).data('originalTitle'));
-	}
-
-	getNotificationsMarkup(document).html(getNotificationsMarkup(dom).html());
-}
-
-function updateStatusOnLoad() {
-	DEBUG('StatusOnLoad...');
-
-	$(document).data('originalTitle', $('head>title').text());
-
-	parsePage(document);
-
-	setTimeout(updateStatusAsync, REFRESH_PERIOD);
-}
-
-function updateStatusAsync() {
-	DEBUG('StatusAsync');
-
-	$.ajax({
-		url: 'http://www.furaffinity.net/controls/',
-		success: function (dom) { parsePage(dom); }
-	}).fail(function () { DEBUG('Ajax request failed'); });
-
-	setTimeout(updateStatusAsync, REFRESH_PERIOD);
-}
-
-$(function() { updateStatusOnLoad(); });
+});
