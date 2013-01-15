@@ -1,6 +1,6 @@
 {
   "name": "FA Status",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Title bar status for FA",
   "content_scripts": [
     {

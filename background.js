@@ -23,7 +23,7 @@ function setTitle(str) {
 }
 
 function getNotificationsMarkup(dom) {
-	return $(dom).find('p').first();
+	return $(dom).find('.header_bkg li.noblock').first();
 }
 
 function parsePage(dom) {
